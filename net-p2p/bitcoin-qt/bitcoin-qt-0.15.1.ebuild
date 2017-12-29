@@ -9,7 +9,6 @@ inherit autotools bash-completion-r1 db-use gnome2-utils xdg-utils
 MyPV="${PV/_/}"
 MyPN="bitcoin"
 MyP="${MyPN}-${MyPV}"
-BITCOINCORE_COMMITHASH="7b57bc998f334775b50ebc8ca5e78ca728db4c58"
 KNOTS_PV="${PV}.knots20171111"
 KNOTS_P="${MyPN}-${KNOTS_PV}"
 
@@ -24,7 +23,7 @@ SLOT="0"
 KEYWORDS="~amd64 ~amd64-linux ~arm ~arm64 ~mips ~ppc ~x86 ~x86-linux"
 
 SRC_URI="
-	https://github.com/${MyPN}/${MyPN}/archive/${BITCOINCORE_COMMITHASH}.tar.gz -> ${MyPN}-v${PV}.tar.gz
+	https://bitcoin.org/bin/${MyPN}-core-${MyPV}/${MyP}.tar.gz
 	http://bitcoinknots.org/files/0.15.x/${KNOTS_PV}/${KNOTS_P}.patches.txz -> ${KNOTS_P}.patches.tar.xz
 "
 CORE_DESC="https://bitcoincore.org/en/2017/11/11/release-${PV}/"
@@ -101,7 +100,7 @@ REQUIRED_USE+=" $(bitcoin_lang_requireduse)"
 
 DOCS=( doc/bips.md doc/files.md doc/release-notes.md )
 
-S="${WORKDIR}/${MyPN}-${BITCOINCORE_COMMITHASH}"
+S="${WORKDIR}/${MyP}"
 
 pkg_pretend() {
 	if use knots; then
@@ -140,8 +139,6 @@ src_prepare() {
 	echo '#!/bin/true' >share/genbuild.sh || die
 	mkdir -p src/obj || die
 	echo "#define BUILD_SUFFIX gentoo${PVR#${PV}}" >src/obj/build.h || die
-
-	sed -i 's/^\(Icon=\).*$/\1bitcoin-qt/;s/^\(Categories=.*\)$/\1P2P;Network;Qt;/' contrib/debian/bitcoin-qt.desktop || die
 
 	local filt= yeslang= nolang= lan ts x
 
@@ -215,8 +212,7 @@ src_install() {
 	else
 		newins "share/pixmaps/bitcoin.ico" "${PN}.ico"
 	fi
-	insinto /usr/share/applications
-	doins "contrib/debian/bitcoin-qt.desktop"
+	domenu "${FILESDIR}"/${PN}.desktop
 
 	use libevent && dodoc doc/REST-interface.md doc/tor.md
 
@@ -226,7 +222,7 @@ src_install() {
 
 	if use kde; then
 		insinto /usr/share/kde4/services
-		doins contrib/debian/bitcoin-qt.protocol
+		doins "${FILESDIR}"/${PN}.protocol
 		dosym "../kde4/services/bitcoin-qt.protocol" "/usr/share/kservices5/bitcoin-qt.protocol"
 	fi
 }
